@@ -1,0 +1,26 @@
+FROM alpine:latest
+
+# Cài đặt dependencies
+RUN apk add --no-cache \
+    inotify-tools \
+    bash \
+    curl \
+    ca-certificates
+
+# Cài đặt MinIO Client
+RUN wget https://dl.min.io/client/mc/release/linux-amd64/mc \
+    && chmod +x mc \
+    && mv mc /usr/local/bin/
+
+# Tạo thư mục
+RUN mkdir -p /watch /scripts
+
+# Copy script
+COPY scripts/watch-and-upload.sh /scripts/
+RUN chmod +x /scripts/watch-and-upload.sh
+
+# Script khởi động
+COPY scripts/start-watcher.sh /scripts/
+RUN chmod +x /scripts/start-watcher.sh
+
+CMD ["/scripts/start-watcher.sh"]

@@ -1,0 +1,6 @@
+/data
+/data-sample
+/hls
+/minio-data
+/stt-module/src/__pycache__
+stt-module/venv
