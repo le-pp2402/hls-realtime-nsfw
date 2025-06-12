@@ -30,3 +30,8 @@ Containerization: Docker
 ## 🔧 Install
 
 ## 📄 License
+
+
+## TODO
+[ ] Add redis to cache duplicate input of model nsfw detector
+![Screenshot from 2025-06-12 14-54-52](https://github.com/user-attachments/assets/622ce96b-c974-46fb-84df-14144f2172c3)
