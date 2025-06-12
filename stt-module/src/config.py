@@ -17,7 +17,8 @@ RABBITMQ_HOST = os.getenv("RABBITMQ_HOST", "localhost")
 RABBITMQ_PORT = int(os.getenv("RABBITMQ_PORT", 5672))  
 RABBITMQ_USER = os.getenv("RABBITMQ_USER", "guest")
 RABBITMQ_PASSWORD = os.getenv("RABBITMQ_PASSWORD", "guest")
-RABBITMQ_QUEUE = os.getenv("RABBITMQ_QUEUE", "video_transcription")
+RABBITMQ_QUEUE = os.getenv("RABBITMQ_QUEUE", "video.uploaded")
+RABBITMQ_OUTPUT_QUEUE = os.getenv("RABBITMQ_OUTPUT_QUEUE", "video.transcribed")
 
 #FFMPEG CONFIGURATION
 FFMPEG_PATH = os.getenv("FFMPEG_PATH", "/usr/bin/ffmpeg")

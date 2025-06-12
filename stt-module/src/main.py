@@ -2,13 +2,24 @@ import os
 import logging
 from .audio_utils import convert_ts_to_wav
 from .whisper_processor import WhisperProcessor
-from .rabbitmq import RabbitMQConsumer
-from .config import RABBITMQ_HOST, RABBITMQ_PORT, RABBITMQ_USER, RABBITMQ_PASSWORD, RABBITMQ_QUEUE, FFMPEG_PATH, TEMP_DIR, OUTPUT_DIR
+from .rabbitmq_consummer import RabbitMQConsumer
+from .rabbitmq_publisher import RabbitMQPublisher
+from .config import RABBITMQ_HOST, RABBITMQ_PORT, RABBITMQ_USER, RABBITMQ_PASSWORD, RABBITMQ_QUEUE, FFMPEG_PATH, TEMP_DIR, OUTPUT_DIR, RABBITMQ_OUTPUT_QUEUE
 import glob 
 import shutil 
 import json
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+
+
+rabbitmq_publisher = RabbitMQPublisher(
+    host=RABBITMQ_HOST,
+    queue_name=RABBITMQ_OUTPUT_QUEUE,
+    port=RABBITMQ_PORT,
+    username=RABBITMQ_USER,
+    password=RABBITMQ_PASSWORD
+)
+rabbitmq_publisher.connect()
 
 def process_video_file(message: str, processor: WhisperProcessor):
     """
@@ -40,14 +51,15 @@ def process_video_file(message: str, processor: WhisperProcessor):
              os.remove(temp_wav_path)
         return 
 
+
+    logging.info(f"Converted {video_path} to WAV format at {temp_wav_path}")
+
     try:
         segments, info = processor.transcribe_audio(temp_wav_path)
 
         logging.info("Transcription segments:")
         for segment in segments:
-            line = f"\033[91m[RESULT][{segment.start:.2f}s -> {segment.end:.2f}s] {segment.text}\033[0m"
-            logging.info(line)
-            transcription_output.append(line)
+            rabbitmq_publisher.publish(segment.text)
 
     except FileNotFoundError:
          logging.error(f"Temporary WAV file not found for transcription: {temp_wav_path}")
