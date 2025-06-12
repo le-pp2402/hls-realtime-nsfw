@@ -25,3 +25,9 @@ FFMPEG_PATH = os.getenv("FFMPEG_PATH", "/usr/bin/ffmpeg")
 #DIRECTORIES
 TEMP_DIR = os.getenv("TEMP_DIR", "temp")
 OUTPUT_DIR = os.getenv("OUTPUT_DIR", "output")
+
+#MINIO CONFIGURATION
+MINIO_ENDPOINT = os.getenv("MINIO_ENDPOINT", "localhost")
+MINIO_PORT = int(os.getenv("MINIO_PORT", 9000))
+MINIO_ACCESS_KEY = os.getenv("MINIO_ACCESS_KEY", "minio_user")
+MINIO_SECRET_KEY = os.getenv("MINIO_SECRET_KEY", "MatKhau24CuaP02hatD123aiLam")

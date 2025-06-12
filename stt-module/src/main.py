@@ -6,27 +6,34 @@ from .rabbitmq import RabbitMQConsumer
 from .config import RABBITMQ_HOST, RABBITMQ_PORT, RABBITMQ_USER, RABBITMQ_PASSWORD, RABBITMQ_QUEUE, FFMPEG_PATH, TEMP_DIR, OUTPUT_DIR
 import glob 
 import shutil 
+import json
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
-def process_video_file(video_path: str, processor: WhisperProcessor, output_base_name: str):
+def process_video_file(message: str, processor: WhisperProcessor):
     """
     Processes a single video file: converts to WAV, transcribes, and saves output.
 
     Args:
         video_path: Path to the input video file.
         processor: An instance of WhisperProcessor with the loaded model.
-        output_base_name: Base name for the output files (e.g., video1).
     """
-    logging.info(f"Processing video: {video_path}")
+    message = json.loads(message)  
+
+    video_path = message['Key']
+
+    if (video_path.endswith('.ts') == False):
+        return
+
+    logging.info(f"Starting transcription for {video_path}")
 
     # --- Stage 1: Video to WAV Conversion ---
     # Create a temporary path for the WAV file
-    os.makedirs(TEMP_DIR, exist_ok=True) 
-    temp_wav_path = os.path.join(TEMP_DIR, f"{output_base_name}.wav")
+    os.makedirs(TEMP_DIR, exist_ok=True)
+    temp_wav_path = os.path.join(TEMP_DIR, f"{os.path.basename(video_path)}.wav")
 
     try:
-        convert_video_to_wav(video_path, temp_wav_path)
+        convert_ts_to_wav(video_path, temp_wav_path)
     except Exception as e:
         logging.error(f"Skipping transcription due to FFmpeg error for {video_path}: {e}")
         if os.path.exists(temp_wav_path):
@@ -34,31 +41,13 @@ def process_video_file(video_path: str, processor: WhisperProcessor, output_base
         return 
 
     try:
-        # Transcribe using the SAME processor instance
         segments, info = processor.transcribe_audio(temp_wav_path)
 
-        # Process the segments and prepare output
         logging.info("Transcription segments:")
         for segment in segments:
-            line = f"[{segment.start:.2f}s -> {segment.end:.2f}s] {segment.text}"
+            line = f"\033[91m[RESULT][{segment.start:.2f}s -> {segment.end:.2f}s] {segment.text}\033[0m"
             logging.info(line)
             transcription_output.append(line)
-
-        # Optional: Save raw text or structured output (e.g., JSON)
-        raw_text = "".join([segment.text for segment in segments])
-        output_raw_text_path = os.path.join(OUTPUT_DIR, f"{output_base_name}_raw.txt")
-        with open(output_raw_text_path, 'w', encoding='utf-8') as f:
-            f.write(raw_text)
-        logging.info(f"Raw transcription saved to {output_raw_text_path}")
-
-        # Save the segment-by-segment output
-        with open(output_text_path, 'w', encoding='utf-8') as f:
-             for line in transcription_output:
-                 f.write(line + '\n')
-        logging.info(f"Segment transcription saved to {output_text_path}")
-
-        # You could also pass 'segments' or 'raw_text' to another module here
-        # another_module.process_transcription(output_base_name, segments, raw_text)
 
     except FileNotFoundError:
          logging.error(f"Temporary WAV file not found for transcription: {temp_wav_path}")
@@ -95,7 +84,7 @@ def main():
     logging.info("Connected to RabbitMQ. Waiting for messages...")
 
     rabbitmq_client.start_consuming(
-        callback_func=lambda ch, method, properties, body: process_message(body, whisper_processor)
+        callback_func=lambda body: process_video_file(body, whisper_processor)
     )
     
 if __name__ == "__main__":

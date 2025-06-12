@@ -69,6 +69,17 @@ services:
       - MINIO_SECRET_KEY=MatKhau24CuaP02hatD123aiLam
       - WATCH_DIR=/watch/hls
 
+  whisperlive:
+    image: ghcr.io/collabora/whisperlive-cpu:latest
+    container_name: whisperlive
+    ports:
+      - "9090:9090"
+    networks:
+      - my_bridge_network
+    depends_on:
+      - nginx-rtmp
+      - minio
+
 networks:
   my_bridge_network:
     driver: bridge
