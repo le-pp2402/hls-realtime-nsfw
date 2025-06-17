@@ -3,9 +3,7 @@
 ## 🏁 Goal
 The goal is to provide a backend detection system that can be used in content moderation pipelines, particularly for live streaming platforms using HLS streaming on realtime
 
-A backend system designed for detecting NSFW (Not Safe For Work) content in videos streamed via HLS (HTTP Live Streaming). Built for competition purposes as part of HueICTC.
-
-This project is developed by a team of students participating in the HueICTC competition.
+A backend system designed for detecting NSFW (Not Safe For Work) content in videos streamed via HLS (HTTP Live Streaming).
 
 ## 👥 TEAM:
  
